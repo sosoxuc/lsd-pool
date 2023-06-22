@@ -1,4 +1,5 @@
 import json
+import os
 from collections import namedtuple
 from eth_typing import HexAddress, HexStr
 from ssv.ssv_cli import SSV, OperatorData
@@ -13,7 +14,10 @@ from utils.ssv_network import SSVNetwork, SSVToken, SSVNetworkview
 import traceback
 from staking_deposit.validator_key import ValidatorKey, DepositData
 from ssv.ssv_cli import Operator
+from dotenv import load_dotenv
 
+load_dotenv()
+PRIV_KEY = os.getenv("PRIV_KEY")
 
 def read_file(file_path):
     """
@@ -76,7 +80,7 @@ def deposit_keyshare(config_file):
     :return: Null
     """
     config = read_file(config_file)
-    web3_eth = EthNode(config.eth.rpc, config.eth.priv_key)
+    web3_eth = EthNode(config.eth.rpc, PRIV_KEY)
     ssv_token = SSVToken(config.ssv_token, web3_eth.eth_node)
     stake_pool = StakingPool(config.stakepool_contract, web3_eth.eth_node)
     print(ssv_token.get_balance(
@@ -126,7 +130,7 @@ def deposit_validator(config_file):
     deposit_file = read_file(config.deposit_file)
     deposit_data = [DepositData(key.pubkey, key.withdrawal_credentials, key.signature, key.deposit_data_root) for key in
                     deposit_file]
-    web3_eth = EthNode(config.eth.rpc, config.eth.priv_key)
+    web3_eth = EthNode(config.eth.rpc, PRIV_KEY)
     stake_pool = StakingPool(config.stakepool_contract, web3_eth.eth_node)
     for deposit in deposit_data:
         print(deposit)
@@ -161,8 +165,8 @@ def start_staking(config_file):
         while True:
             mnemonic = get_mnemonic(
                 language="english", words_path=WORD_LISTS_PATH)  # mnemonic
-            web3_eth = EthNode(config.eth.rpc, config.eth.priv_key)
-            goerli_node = EthNode(config.eth.goerli_rpc, config.eth.priv_key)
+            web3_eth = EthNode(config.eth.rpc, PRIV_KEY)
+            goerli_node = EthNode(config.eth.goerli_rpc, PRIV_KEY)
             # checks if pool has enough funds for validator to be deposited
             if web3_eth.get_balance(config.contract_address.stakepool) >= 32 or len(fallback) > 0:
                 stake_pool = StakingPool(
